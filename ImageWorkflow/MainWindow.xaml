@@ -1,0 +1,52 @@
+﻿<Window x:Class="ImageWorkflow.MainWindow"
+		xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+		xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+		xmlns:m="clr-namespace:ImageWorkflow.Model"
+		xmlns:vm="clr-namespace:ImageWorkflow.ViewModel"
+		Title="MainWindow" Height="350" Width="525">
+
+	<Window.Resources>
+		<DataTemplate  x:Key="tr">
+			<TextBlock Text="{Binding Path=Name}"/>
+		</DataTemplate >
+		<DataTemplate DataType="{x:Type vm:WorkflowViewModel}">
+			<DockPanel>
+				<StackPanel Width="80">
+					<Button Content=">>"
+							Command="{Binding Path=AddTransformationCommand}"></Button>
+					<ListBox Width="80" 
+							 DockPanel.Dock="Left"
+							 ItemsSource="{Binding Path=AvailableTransformations, UpdateSourceTrigger=PropertyChanged}"
+							 SelectedItem="{Binding Path=CurrentAvailableTransformation, UpdateSourceTrigger=PropertyChanged}"
+							 ItemTemplate="{StaticResource tr}"
+							 >
+					</ListBox>
+					<ListBox Width="80" 
+							 DockPanel.Dock="Left"
+							 ItemsSource="{Binding Path=AvailableSourceGenerators, UpdateSourceTrigger=PropertyChanged}"
+							 SelectedItem="{Binding Path=CurrentSourceGenerator, UpdateSourceTrigger=PropertyChanged}"
+							 ItemTemplate="{StaticResource tr}">
+					</ListBox>
+				</StackPanel>
+				<StackPanel Width="80">
+					<Button Content="Test"
+							Command="{Binding Path=TestWorkflowCommand}"></Button>
+					<Button Content="Delete"
+							Command="{Binding Path=RemoveTransformationCommand}"></Button>
+					<ListBox Width="80" 
+							 ItemsSource="{Binding Path=Transformations, UpdateSourceTrigger=PropertyChanged}"
+							 SelectedItem="{Binding Path=CurrentTransformation, UpdateSourceTrigger=PropertyChanged}"
+							 DockPanel.Dock="Left"
+							 ItemTemplate="{StaticResource tr}" >
+					</ListBox>
+				</StackPanel>
+				<Image Source="{Binding Path=TestResult, UpdateSourceTrigger=PropertyChanged}"></Image>
+			</DockPanel>
+
+		</DataTemplate>
+	</Window.Resources>
+
+	<Grid>
+		<ContentControl Content="{Binding }" HorizontalAlignment="Stretch" />
+	</Grid>
+</Window>

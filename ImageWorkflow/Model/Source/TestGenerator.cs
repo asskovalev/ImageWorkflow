@@ -1,0 +1,198 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Drawing;
+using System.ComponentModel.Composition;
+using System.Drawing.Imaging;
+
+namespace ImageWorkflow.Model
+{
+
+	[Export(typeof(ISourceGenerator))]
+	public class TestGenerator : ISourceGenerator
+	{
+		public string Name { get { return "Test"; } }
+		public Size Size { get; private set; }
+
+		private Random rand = new Random();
+
+		public Bitmap Generate()
+		{
+			var basis = Size
+				.noise(5, 0.5, 1, 4);
+
+            var gradient = basis.sobel();
+
+            var rock1 = basis
+                .toChain()
+                .range(0.6, 1, x => x * x / 50)
+                .apply()
+                .ip_bw_rand()
+                .max()
+                .randian()
+                //.max()
+                //.randian()
+                ;
+
+            var rock2 = gradient
+                .toChain()
+                .gamma(1.5)
+                .apply()
+                .ip_bw_rand(77)
+                .max()
+                .randian()
+                ;
+            var trees = gradient
+                .toChain()
+                .range(0, 0.05, it => 1 - it)
+                .gamma(5)
+                .custom(x => x / 200)
+                .apply()
+                .ip_bw_rand(1)
+                .max()
+                .randian()
+                //.max()
+                //.randian()
+                ;
+
+            var shrub = gradient
+                .toChain()
+                .range(0, 0.3, it => 1 - it)
+                .custom(x => x * x / 60)
+                .apply()
+                .ip_bw_rand(2)
+                .max()
+                .randian()
+                ;
+
+            var grass1 = basis
+                .toChain()
+                .range(0.0, 0.8)
+                .custom(x => x * x / 5)
+                .apply()
+                .ip_bw_rand(3)
+                .max()
+                .randian()
+                ;
+
+            var lakes = basis
+                .norm(0,1)
+                .toChain()
+                .range(0, 0.1, x => 1 - x)
+                .apply()
+                .threshold(0.3)
+                .max()
+                .max()
+                .randian()
+                //.max()
+                //.median()
+                ;
+            var h = basis
+                .each(x => (int)(50 * x))
+                
+                .sobel().norm(0, 1);
+
+            return ImageBlend.combine(
+            //    basis.layer(Color.Red),
+            //    dirt.layer_binary(Color.FromArgb(128, 64, 0)),
+            //    sand.layer_binary(Color.Yellow),
+            //    shrub.layer_binary(Color.FromArgb(0x22, 0x8b, 0x22)),
+            //    trees.layer(Color.FromArgb(0x00, 0x66, 0x00)),
+            //    water.layer_binary(Color.FromArgb(0x00, 0x7f, 0xff)),
+            //    river.layer(Color.Blue),
+                grass1.layer(Color.FromArgb(0x32, 0xcd, 0x32)),
+                shrub.layer(Color.FromArgb(0x8b, 0x8b, 0x22)),
+                rock2.layer(Color.Red),
+                trees.layer(Color.FromArgb(0x00, 0x66, 0x00)),
+                lakes.layer(Color.Blue)
+                //,                h.layer(Color.White)
+              
+            //    snow.layer_binary(Color.White)
+                );
+
+
+            return trees.toBitmap();
+
+            //return sob.toBitmap();
+
+            //var dirt = basis
+            //    .each(px => 1);
+
+            //var rock = basis
+            //    .toChain()
+            //    .range(0.6, 1, x => x + 0.2)
+            //    .apply()
+            //    ;
+
+            //var snow = basis
+            //    .toChain()
+            //    .range(0.8, 1)
+            //    .apply();
+
+            //var trees = basis
+            //    .toChain()
+            //    .range(0.3, 0.7, x => 1 - PxOp.m_abs(x))
+            //    .apply()
+            //    ;
+
+            //var grass = basis
+            //    .toChain()
+            //    .range(0.1, 0.8, x => 1 - PxOp.m_abs(x))
+            //    .apply()
+            //    ;
+
+            //var river = basis
+            //    .toChain()
+            //    .range(0.4, 0.7, x => 1 - PxOp.m_abs(x))
+            //    .range(0.9, 1)
+            //    .gamma(1.7)
+            //    .apply()
+            //    ;
+
+            //var tr = trees
+            //    //.sub(river.gamma(0.2))
+            //    .each(x => x / 4);
+
+            //var shrub = basis
+            //    .toChain()
+            //    .range(0.4, 0.7, x => 1 - PxOp.m_abs(x))
+            //    .custom(x => x / 4)
+            //    .apply()
+            //    ;
+
+            //var water = basis
+            //    .toChain()
+            //    .range(0.0, 0.3, x => 1 - x)
+            //    .apply()
+            //    ;
+
+            //var sand = basis
+            //    .toChain()
+            //    .range(0.2, 0.3, x => 1 - PxOp.m_abs(x))
+            //    .apply()
+            //    ;
+
+
+
+
+            //return ImageBlend.combine(
+            //    dirt.layer_binary(Color.FromArgb(128, 64, 0)),
+            //    sand.layer_binary(Color.Yellow),
+            //    grass.layer_binary(Color.FromArgb(0x32, 0xcd, 0x32)),
+            //    shrub.layer_binary(Color.FromArgb(0x22, 0x8b, 0x22)),
+            //    tr.layer_binary(Color.FromArgb(0xff, 0x00, 0x00)),
+            //    water.layer_binary(Color.FromArgb(0x00, 0x7f, 0xff)),
+            //    river.layer(Color.Blue),
+            //    rock.layer_binary(Color.Silver),
+            //    snow.layer_binary(Color.White)
+            //    );
+		}
+
+
+		public void Configure(Size size, params object[] parameters)
+		{
+			Size = size;
+		}
+	}
+}
