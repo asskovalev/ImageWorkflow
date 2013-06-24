@@ -5,6 +5,7 @@ using System.Text;
 using System.Drawing;
 using System.ComponentModel.Composition;
 using System.Drawing.Imaging;
+using Imglib;
 
 namespace ImageWorkflow.Model
 {

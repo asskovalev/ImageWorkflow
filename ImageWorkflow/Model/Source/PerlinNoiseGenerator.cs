@@ -6,6 +6,7 @@ using System.Drawing;
 using System.ComponentModel.Composition;
 using System.Drawing.Imaging;
 using System.Drawing.Drawing2D;
+using Imglib;
 
 namespace ImageWorkflow.Model
 {

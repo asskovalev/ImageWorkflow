@@ -43,13 +43,11 @@
   <ItemGroup>
     <Compile Include="CommonExt.cs" />
     <Compile Include="LockBitmap.cs" />
-    <Compile Include="Point.cs" />
     <Compile Include="ImageData.cs" />
     <Compile Include="SimplexNoise.cs" />
     <Compile Include="PixelMap.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="RawData.cs" />
-    <Compile Include="Size.cs" />
     <Compile Include="Uncat.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

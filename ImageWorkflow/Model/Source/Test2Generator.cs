@@ -2,9 +2,11 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using System.Drawing;
 using System.ComponentModel.Composition;
-using System.Drawing.Imaging;
+using Imglib;
+using System.Drawing;
+
+
 
 namespace ImageWorkflow.Model
 {
@@ -13,13 +15,13 @@ namespace ImageWorkflow.Model
 	public class Test2Generator : ISourceGenerator
 	{
 		public string Name { get { return "Test2"; } }
-		public Size Size { get; private set; }
+		public System.Drawing.Size Size { get; private set; }
 
 
-		public Bitmap Generate()
+		public System.Drawing.Bitmap Generate()
 		{
 			Random rand = new Random(0);
-			var n1 = Size.noise(5, 0.5, 0, 1).abs().norm(0, 1);
+			var n1 = Size.With(s => new Size(s.Width, s.Height)).noise(5, 0.5, 0, 1).abs().norm(0, 1);
 			var basis = new ImageData(Size.Width, Size.Height);
 
 			var contParts = 2;
@@ -95,7 +97,7 @@ namespace ImageWorkflow.Model
 		}
 
 
-		public void Configure(Size size, params object[] parameters)
+		public void Configure(System.Drawing.Size size, params object[] parameters)
 		{
 			Size = size;
 		}

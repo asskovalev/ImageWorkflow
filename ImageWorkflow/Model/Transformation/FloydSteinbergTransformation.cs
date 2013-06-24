@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Drawing;
 using System.ComponentModel.Composition;
+using Imglib;
 
 namespace ImageWorkflow.Model
 {

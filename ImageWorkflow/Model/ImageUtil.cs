@@ -4,6 +4,8 @@ using System.Linq;
 using System.Text;
 using System.Drawing;
 using System.Drawing.Imaging;
+using Imglib;
+using Point = System.Drawing.Point;
 
 namespace ImageWorkflow.Model
 {
@@ -62,37 +64,6 @@ namespace ImageWorkflow.Model
 					.Foreach(p => gr.DrawImage(p, new Point()));
 			}
 
-			//    layers[0].image
-			//        .iter((x, y, v) =>
-			//        {
-			//            var colors = layers
-			//                .Select(l => new 
-			//                    {
-			//                        a = l.image[x, y],
-			//                        r = (float)l.color.R / 255.0,
-			//                        g = (float)l.color.G / 255.0,
-			//                        b = (float)l.color.B / 255.0
-			//                    })
-			//                .ToList();
-
-			//            var blended = colors.Aggregate((p, n) => new 
-			//                {
-			//                    a = p.a + n.a,
-			//                    r = p.r * p.a + n.r * n.a,
-			//                    g = p.g * p.a + n.g * n.a,
-			//                    b = p.b * p.a + n.b * n.a,
-			//                });
-			//            var k = layers.Count();
-			//            var c = blended.a < 0.01 
-			//                ? Color.Black
-			//                : Color.FromArgb(
-			//                    255,
-			//                    (int)(nnn(blended.r, blended.a) * 255 / blended.a),
-			//                    (int)(nnn(blended.g, blended.a) * 255 / blended.a),
-			//                    (int)(nnn(blended.b, blended.a) * 255 / blended.a));
-			//            lb.SetPixel(x, y, c);
-			//        });
-			//}
 			return bitmap;
 		}
 

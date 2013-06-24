@@ -156,7 +156,7 @@ namespace ImageWorkflow.ViewModel
 		private void TestWorkflow()
 		{
 			var src = CurrentSourceGenerator
-				.Do(it => it.Configure(new Size(750, 750)))
+				.Do(it => it.Configure(new Size(50, 30)))
 				.Generate();
 
 			MemoryStream memoryStream = new MemoryStream();

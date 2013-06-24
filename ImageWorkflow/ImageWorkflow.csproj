@@ -35,6 +35,14 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'">
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <OutputPath>bin\Debug\</OutputPath>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'">
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <OutputPath>bin\Release\</OutputPath>
+  </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
     <Reference Include="System.ComponentModel.Composition" />
@@ -62,10 +70,9 @@
     <Compile Include="Model\ImageUtil.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Model\LockBitmap.cs" />
+    <Compile Include="Model\Source\TreesGenerator.cs" />
     <Compile Include="Model\Source\Test2Generator.cs" />
     <Compile Include="Model\Source\TestGenerator.cs" />
-    <Compile Include="Model\Source\TurbulenceNoiseGenerator.cs" />
     <Compile Include="Model\Source\Noise.cs" />
     <Compile Include="Model\Source\NoiseGenerator.cs" />
     <Compile Include="Model\Source\PerlinNoiseGenerator.cs" />
@@ -125,7 +132,12 @@
     </None>
     <AppDesigner Include="Properties\" />
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <ProjectReference Include="..\Imglib\Imglib.csproj">
+      <Project>{1DD01026-E470-467B-ABD9-7D2A92E7278D}</Project>
+      <Name>Imglib</Name>
+    </ProjectReference>
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
