@@ -21,7 +21,7 @@ namespace ImageWorkflow.Model
 		public Bitmap Generate()
 		{
 			var basis = Size
-				.noise(5, 0.5, 1, 4);
+				.noise(1, 0.5, 1, 4);
 
 			var trees = basis
 				.range(0.4, 0.7, it => 1 - it)
@@ -48,7 +48,7 @@ namespace ImageWorkflow.Model
 
 
             return ImageBlend.combine(
-				grass.layer(Color.Red),
+				grass.layer(Color.DarkOrange),
             //    dirt.layer_binary(Color.FromArgb(128, 64, 0)),
             //    sand.layer_binary(Color.Yellow),
                 shrub.layer(Color.FromArgb(0x22, 0x99, 0x22)),

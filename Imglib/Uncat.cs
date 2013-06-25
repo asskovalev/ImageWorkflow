@@ -28,22 +28,38 @@ namespace Imglib
 				.Foreach(n =>
 				{
 					a[n] = Math.Pow(persist, n);
-					d[n] = Math.Pow(2, (octaves - n));
+					d[n] = Math.Pow(2, n) * scale;
 				});
 
 			var k = a.Sum() * 2;
 
 			var image = new ImageData(size.Width, size.Height);
+			0.Upto(size.Height)
+				.AsParallel()
+				.ForAll(y =>
+				{
+					for (var x = 0; x < size.Width; x++)
+					{
+						image[x, y] = 0
+							.Upto(octaves)
+							.Aggregate(0.0, (acc, n) =>
+								acc + a[n] * (SimplexNoise.noise(
+									d[n] * ((float)x / size.Width),
+									d[n] * ((float)y / size.Height),
+									variation)))
+							.With(s => s / k + 0.5);
+					}
+				});
 
-			image.iter((x, y, val) =>
-				image[x, y] = 0
-					.Upto(octaves)
-					.Aggregate(0.0, (acc, n) =>
-						acc + a[n] * (SimplexNoise.noise(
-							scale * ((float)x / size.Width + 0.5) / d[n],
-							scale * ((float)y / size.Height + 0.5) / d[n],
-							variation))
-					) / k + 0.5);
+			//image.iter((x, y, val) =>
+			//    image[x, y] = 0
+			//        .Upto(octaves)
+			//        .Aggregate(0.0, (acc, n) =>
+			//            acc + a[n] * (SimplexNoise.noise(
+			//                d[n] * ((float)x / size.Width),
+			//                d[n] * ((float)y / size.Height),
+			//                variation)))
+			//        .With(s => s / k + 0.5));
 			return image;
 		}
 
@@ -51,6 +67,23 @@ namespace Imglib
 		{
 			0.Upto(src.Size.Height)
 				.Foreach(y =>
+					0.Upto(src.Size.Width)
+						.Foreach(x => fn(x, y, src[x, y])));
+			return src;
+		}
+
+		public static IEnumerable<double> AsEnumerable(this ImageData src)
+		{
+			for (var y = 0; y < src.Size.Height; y++)
+				for (var x = 0; x < src.Size.Width; x++)
+					yield return src[x, y];
+		}
+
+		public static ImageData iter_par(this ImageData src, Action<int, int, double> fn)
+		{
+			0.Upto(src.Size.Height)
+				.AsParallel()
+				.ForAll(y =>
 					0.Upto(src.Size.Width)
 						.Foreach(x => fn(x, y, src[x, y])));
 			return src;
@@ -109,7 +142,7 @@ namespace Imglib
 			return img;
 		}
 
-		public static ImageData min(this ImageData src)
+		public static ImageData erode(this ImageData src)
 		{
 			var img = new ImageData(src.Size.Width, src.Size.Height);
 			var w = src.Size.Width;
@@ -125,12 +158,12 @@ namespace Imglib
 
 		public static ImageData opening(this ImageData src)
 		{
-			return src.min().max();
+			return src.erode().dilate();
 		}
 
 		public static ImageData closing(this ImageData src)
 		{
-			return src.max().min();
+			return src.dilate().erode();
 		}
 
 		public static ImageData blur(this ImageData src)
@@ -149,7 +182,7 @@ namespace Imglib
 			return img;
 		}
 
-		public static ImageData max(this ImageData src)
+		public static ImageData dilate(this ImageData src)
 		{
 			var img = new ImageData(src.Size.Width, src.Size.Height);
 			var w = src.Size.Width;
@@ -163,19 +196,42 @@ namespace Imglib
 			return img;
 		}
 
+		private static double median_sup(int count, Func<int, double> selector)
+		{
+			return 0.Upto(count)
+				.Select(selector)
+				.OrderBy(x => x)
+				.ElementAt((count - 1) / 2);
+		}
+
 		public static ImageData median(this ImageData src)
 		{
 			var img = new ImageData(src.Size.Width, src.Size.Height);
 			var w = src.Size.Width;
 			var h = src.Size.Height;
 
-			1.Upto(w - 2).Foreach(
-				x => 1.Upto(h - 2).Foreach(
+			img[    0,     0] = median_sup(4, a => src[        (a / 2),         (a % 2)]);
+			img[    0, h - 1] = median_sup(4, a => src[        (a / 2), h - 1 - (a % 2)]);
+			img[w - 1,     0] = median_sup(4, a => src[w - 1 - (a / 2),         (a % 2)]);
+			img[w - 1, h - 1] = median_sup(4, a => src[w - 1 - (a / 2), h - 1 - (a % 2)]);
+
+			1.Upto(w - 2).Foreach(x =>
+			{
+				img[x,     0] = median_sup(6, a => src[x + (a % 3 - 1),         (a / 2)]);
+				img[x, h - 1] = median_sup(6, a => src[x + (a % 3 - 1), h - 1 - (a / 2)]);
+			});
+
+			1.Upto(h - 2).Foreach(y =>
+			{
+				img[    0, y] = median_sup(6, a => src[        (a / 2), y + (a % 3 - 1)]);
+				img[w - 1, y] = median_sup(6, a => src[w - 1 - (a / 2), y + (a % 3 - 1)]);
+			});
+
+			1.Upto(w - 2).AsParallel().ForAll(
+				x => 1
+					.Upto(h - 2).Foreach(
 					y =>
-						img[x, y] = 0.Upto(9)
-							.Select(a => src[x + (a % 3 - 1), y + (a / 3 - 1)])
-							.OrderBy(it => it)
-							.ElementAt(4)));
+						img[x, y] = median_sup(9, a => src[x + (a % 3 - 1), y + (a / 3 - 1)])));
 
 			return img;
 		}
@@ -264,8 +320,8 @@ namespace Imglib
 
 		public static ImageData range(this ImageData src, double left, double right, Func<double, double> proc)
 		{
-			return new ImageData(src, px => 
-				px > right || px < left 
+			return new ImageData(src, px =>
+				px > right || px < left
 					? 0.0
 					: proc((px - left) / (right - left)));
 		}
@@ -290,11 +346,13 @@ namespace Imglib
 			var mn = 1000.0;
 			var mx = -1000.0;
 
-			src.iter((x, y, val) =>
-			{
-				if (val < mn) mn = val;
-				if (val > mx) mx = val;
-			});
+			src
+				.AsEnumerable()
+				.Foreach(val =>
+				{
+					if (val < mn) mn = val;
+					if (val > mx) mx = val;
+				});
 
 			var offset = min - mn;
 			var k = (max - min) / (mx - mn);
@@ -305,7 +363,7 @@ namespace Imglib
 		public static ImageData add(this ImageData src, ImageData addition)
 		{
 			var pixels = new ImageData(src);
-			pixels.iter((x, y, value) =>
+			pixels.iter_par((x, y, value) =>
 				pixels[x, y] = fix(pixels[x, y] + addition[x, y]));
 			return pixels;
 		}
@@ -313,8 +371,16 @@ namespace Imglib
 		public static ImageData mul(this ImageData src, ImageData addition)
 		{
 			var pixels = new ImageData(src);
-			pixels.iter((x, y, value) =>
+			pixels.iter_par((x, y, value) =>
 				pixels[x, y] = pixels[x, y] * addition[x, y]);
+			return pixels;
+		}
+
+		public static ImageData max(this ImageData src, ImageData addition)
+		{
+			var pixels = new ImageData(src);
+			pixels.iter_par((x, y, value) =>
+				pixels[x, y] = Math.Max(pixels[x, y], addition[x, y]));
 			return pixels;
 		}
 
@@ -379,6 +445,20 @@ namespace Imglib
 			var pixels = new ImageData(src);
 			pixels.iter((x, y, value) =>
 				pixels[x, y] = fix(pixels[x, y] - subtraction[x, y]));
+			return pixels;
+		}
+
+		public static ImageData zip(this ImageData src1, ImageData src2, Func<double, double, double> fn)
+		{
+			if (src1.Size.Width != src2.Size.Width)
+				throw new ArgumentOutOfRangeException("src2", "Widths differs");
+
+			if (src1.Size.Height != src2.Size.Height)
+				throw new ArgumentOutOfRangeException("src2", "Heights differs");
+
+			var pixels = new ImageData(src1.Size.Width, src1.Size.Height);
+			pixels.iter((x, y, value) =>
+				pixels[x, y] = fn(src1[x, y], src2[x, y]));
 			return pixels;
 		}
 

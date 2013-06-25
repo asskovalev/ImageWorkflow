@@ -70,6 +70,7 @@
     <Compile Include="Model\ImageUtil.cs">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="Model\Source\BiomesGenerator.cs" />
     <Compile Include="Model\Source\TreesGenerator.cs" />
     <Compile Include="Model\Source\Test2Generator.cs" />
     <Compile Include="Model\Source\TestGenerator.cs" />

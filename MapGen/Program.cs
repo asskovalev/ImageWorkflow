@@ -88,11 +88,16 @@ namespace MapGen
 
 			var tag = data.Item[0].BertCast<Bert.Atom>().Item;
 			var settings = data.Item[1].BertDict();
-			var layerMap = ParseLayerMap(data.Item[2]);
 
 			switch (tag)
 			{
-				case "fullmap": return FullMap(settings, layerMap);
+				case "fullmap":
+				{
+					var layerMap = ParseLayerMap(data.Item[2]);
+					return FullMap(settings, layerMap);
+				}
+				case "biome":   
+					return BiomeMap(settings);
 				default: throw new NotImplementedException();
 			}
 		}
@@ -193,5 +198,103 @@ namespace MapGen
 				.Select(Bert.NewByteList)
 				.ToArray());
 		}
+
+		static class Biome
+		{
+			public static Bert Snow   = Bert.NewAtom("snow");
+			public static Bert Plains = Bert.NewAtom("plains");
+			public static Bert Tundra = Bert.NewAtom("tundra");
+			public static Bert Swamp  = Bert.NewAtom("swamp");
+			public static Bert Forest = Bert.NewAtom("forest");
+			public static Bert Woods  = Bert.NewAtom("woods");
+			public static Bert Desert = Bert.NewAtom("desert");
+			public static Bert Rocks  = Bert.NewAtom("rocks");
+			public static Bert Ocean  = Bert.NewAtom("water");
+			public static Bert Unknown  = Bert.NewAtom("unk");
+		}
+
+		static Bert BiomeMap(Dictionary<string, Bert> settings)
+		{
+			var w = settings["w"].BertCast<Bert.Integer>().Item;
+			var h = settings["h"].BertCast<Bert.Integer>().Item;
+			var seed = settings["seed"].BertCast<Bert.Integer>().Item;
+
+			var size = new Size(w, h);
+
+			var basis = size
+				.noise(1, 0.7, seed, 8)
+				.norm(0, 1);
+
+			var temperature = size
+				.noise(1, 0.5, seed + 1, 3)
+				.norm(0, 1)
+				.gamma(0.6)
+				.each(x => (int)(x * 10))
+				.norm(0, 1);
+
+
+			var rainfall = size
+				.noise(1, 0.5, seed + 2, 8)
+				.each(x => (int)(x * 10))
+				.norm(0, 1);
+
+			var land = basis
+				.threshold(0.35);
+			
+			// правая часть											    
+			Func<double, double, double> p_desert = (r, t) => t >= 0.50                           && r <= 0.25 ? 1.0 : 0.0;
+			Func<double, double, double> p_woods  = (r, t) => t >= 0.50              && r >= 0.25 && r <= 0.50 ? 1.0 : 0.0;
+			Func<double, double, double> p_forest = (r, t) => t >= 0.50              && r >= 0.50 && r <= 0.80 ? 1.0 : 0.0;
+			Func<double, double, double> p_swamp  = (r, t) => t >= 0.50              && r >= 0.80              ? 1.0 : 0.0;
+
+			// левая часть
+			Func<double, double, double> p_tundra = (r, t) =>              t <= 0.25              && r <= 0.6  ? 1.0 : 0.0;
+			Func<double, double, double> p_plains = (r, t) => t >= 0.25 && t <= 0.50              && r <= 0.6  ? 1.0 : 0.0;
+			Func<double, double, double> p_snow   = (r, t) =>              t <= 0.50 && r >= 0.60              ? 1.0 : 0.0;
+
+			// айсберги
+			Func<double, double, double> p_ice    = (r, t) =>              t <= 0.30                           ? 1.0 : 0.0;
+
+			var ocean = land.invert();
+			var rocks = basis.range(0.9, 1, x => 1.0);
+			var desert = rainfall.zip(temperature, p_desert).mul(land);
+			var woods  = rainfall.zip(temperature, p_woods ).mul(land);
+			var forest = rainfall.zip(temperature, p_forest).mul(land);
+			var swamp  = rainfall.zip(temperature, p_swamp ).mul(land);
+			var tundra = rainfall.zip(temperature, p_tundra).mul(land);
+			var plains = rainfall.zip(temperature, p_plains).mul(land);
+			var snow   = rainfall.zip(temperature, p_snow  ).mul(land);
+			var ice    = rainfall.zip(temperature, p_ice   ).mul(ocean);
+
+
+			var result = Enumerable
+				.Range(0, h)
+				.Select(y => Enumerable
+					.Range(0, w)
+					.Select(x => Bert.Nil)
+					.ToArray())
+				.ToArray();
+
+			basis
+				.iter((x, y, _) =>
+				{
+					if      (ice   [x, y] > 0) result[y][x] = Biome.Snow;
+					else if (snow  [x, y] > 0) result[y][x] = Biome.Snow;
+					else if (plains[x, y] > 0) result[y][x] = Biome.Plains;
+					else if (tundra[x, y] > 0) result[y][x] = Biome.Tundra;
+					else if (swamp [x, y] > 0) result[y][x] = Biome.Swamp;
+					else if (forest[x, y] > 0) result[y][x] = Biome.Forest;
+					else if (woods [x, y] > 0) result[y][x] = Biome.Woods;
+					else if (desert[x, y] > 0) result[y][x] = Biome.Desert;
+					else if (rocks [x, y] > 0) result[y][x] = Biome.Rocks;
+					else if (ocean [x, y] > 0) result[y][x] = Biome.Ocean;
+					else                       result[y][x] = Biome.Unknown;
+				});
+
+			return Bert.NewList(result
+				.Select(Bert.NewList)
+				.ToArray());
+		}
+
 	}
 }

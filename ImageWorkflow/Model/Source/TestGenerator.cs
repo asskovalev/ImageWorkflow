@@ -30,7 +30,7 @@ namespace ImageWorkflow.Model
                 .range(0.6, 1, x => x * x / 50)
                 .apply()
                 .ip_bw_rand()
-                .max()
+                .dilate()
                 .randian()
                 //.max()
                 //.randian()
@@ -41,7 +41,7 @@ namespace ImageWorkflow.Model
                 .gamma(1.5)
                 .apply()
                 .ip_bw_rand(77)
-                .max()
+                .dilate()
                 .randian()
                 ;
             var trees = gradient
@@ -51,7 +51,7 @@ namespace ImageWorkflow.Model
                 .custom(x => x / 200)
                 .apply()
                 .ip_bw_rand(1)
-                .max()
+                .dilate()
                 .randian()
                 //.max()
                 //.randian()
@@ -63,7 +63,7 @@ namespace ImageWorkflow.Model
                 .custom(x => x * x / 60)
                 .apply()
                 .ip_bw_rand(2)
-                .max()
+                .dilate()
                 .randian()
                 ;
 
@@ -73,7 +73,7 @@ namespace ImageWorkflow.Model
                 .custom(x => x * x / 5)
                 .apply()
                 .ip_bw_rand(3)
-                .max()
+                .dilate()
                 .randian()
                 ;
 
@@ -83,8 +83,8 @@ namespace ImageWorkflow.Model
                 .range(0, 0.1, x => 1 - x)
                 .apply()
                 .threshold(0.3)
-                .max()
-                .max()
+                .dilate()
+                .dilate()
                 .randian()
                 //.max()
                 //.median()

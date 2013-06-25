@@ -31,12 +31,14 @@ namespace Imglib
             var h = Size.Height;
             var w = Size.Width;
             var result = new T[h][];
-            for (var i = 0; i < h; i++)
-            {
-                result[i] = new T[w];
-                Array.Copy(data[i], result[i], w);
-            }
-            return result;
+			Enumerable.Range(0, h)
+				.AsParallel()
+				.ForAll(i =>
+				{
+					result[i] = new T[w];
+					Array.Copy(data[i], result[i], w);
+				});
+				return result;
         }
 
         public T[][] CopyData(Func<T, T> fn)
@@ -44,8 +46,9 @@ namespace Imglib
             var h = Size.Height;
             var w = Size.Width;
             var result = new T[h][];
-            for (var i = 0; i < h; i++)
-                result[i] = data[i].Select(fn).ToArray();
+			Enumerable.Range(0, h)
+				.AsParallel()
+				.ForAll(i => result[i] = data[i].Select(fn).ToArray());
             return result;
         }
     }

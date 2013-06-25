@@ -86,7 +86,7 @@ namespace ImageWorkflow.Model
 
 			return contAdd4
 				.shuffle(1, 100000)
-				.max()
+				.dilate()
 				//.distortx(n, 10)
 				.distorty(n, 10)
 				.shuffle(1, 10000)
